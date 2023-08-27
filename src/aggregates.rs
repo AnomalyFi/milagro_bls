@@ -8,6 +8,10 @@ use super::amcl_utils::{
 use super::keys::PublicKey;
 use super::signature::Signature;
 use rand::Rng;
+use BLSCurve::bls381::utils::{
+    deserialize_g2
+};
+
 
 /// Allows for the adding/combining of multiple BLS PublicKeys.
 ///
@@ -318,6 +322,18 @@ impl AggregateSignature {
     /// Instatiate an AggregateSignature from some bytes.
     pub fn from_bytes(bytes: &[u8]) -> Result<AggregateSignature, AmclError> {
         let point = decompress_g2(bytes)?;
+        Ok(Self { point })
+    }
+
+    /// Instatiate an AggregateSignature from some bytes.
+    ///
+    /// Does not validate the Signature, MUST only be used on verified Signature.
+    pub fn from_uncompressed_bytes(bytes: &[u8]) -> Result<AggregateSignature, AmclError> {
+        //TODO may need to add this back
+        // if bytes.len() != G2_BYTES * 2 {
+        //     return Err(AmclError::InvalidG1Size);
+        // }
+        let point = deserialize_g2(bytes)?;
         Ok(Self { point })
     }
 

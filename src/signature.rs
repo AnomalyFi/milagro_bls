@@ -6,6 +6,12 @@ use super::amcl_utils::{
 };
 use super::keys::{PublicKey, SecretKey};
 
+use BLSCurve::bls381::utils::{
+    deserialize_g2
+};
+
+
+
 #[derive(Clone, PartialEq, Eq)]
 #[cfg_attr(feature = "std", derive(Debug))]
 pub struct Signature {
@@ -44,6 +50,18 @@ impl Signature {
         let point = decompress_g2(bytes)?;
         Ok(Self { point })
     }
+
+    /// Signature from uncompress (x, y) bytes
+    ///
+    /// Does not validate the Signature, MUST only be used on verified Signature.
+    pub fn from_uncompressed_bytes(bytes: &[u8]) -> Result<Signature, AmclError> {
+        //TODO may need to add this back
+        // if bytes.len() != G2_BYTES * 2 {
+        //     return Err(AmclError::InvalidG1Size);
+        // }
+        Ok(Self { point: deserialize_g2(bytes)? })
+    }
+
 
     /// Compress the Signature as bytes.
     pub fn as_bytes(&self) -> [u8; G2_BYTES] {
