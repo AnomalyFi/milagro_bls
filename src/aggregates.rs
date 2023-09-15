@@ -2,14 +2,14 @@ extern crate amcl;
 extern crate rand;
 
 use super::amcl_utils::{
-    self, ate2_evaluation, compress_g2, decompress_g2, g1mul, g2mul, hash_to_curve_g2, pair,
-    subgroup_check_g2, AmclError, Big, GroupG1, GroupG2, G2_BYTES,
+    self, ate2_evaluation, compress_g2, decompress_g2, compress_g1, decompress_g1, g1mul, g2mul, hash_to_curve_g2, pair,
+    subgroup_check_g2, AmclError, Big, GroupG1, GroupG2, G2_BYTES, G1_BYTES,
 };
 use super::keys::PublicKey;
 use super::signature::Signature;
 use rand::Rng;
 use BLSCurve::bls381::utils::{
-    deserialize_g2
+    deserialize_g2, deserialize_g1
 };
 
 
@@ -78,6 +78,30 @@ impl AggregatePublicKey {
         // Note: it is possible to have an `AggregatePublicKey = infinity` by summing non-infinity PublicKeys
         // which add to a multiple of the group order.
         self.point.add(&aggregate_public_key.point);
+    }
+
+    //TODO below this is new
+    /// Instatiate an AggregatePublicKey from some bytes.
+    pub fn from_bytes(bytes: &[u8]) -> Result<AggregatePublicKey, AmclError> {
+        let point = decompress_g1(bytes)?;
+        Ok(Self { point })
+    }
+
+    /// Instatiate an AggregatePublicKey from some bytes.
+    ///
+    /// Does not validate the PublicKey, MUST only be used on verified PublicKey.
+    pub fn from_uncompressed_bytes(bytes: &[u8]) -> Result<AggregatePublicKey, AmclError> {
+        //TODO may need to add this back
+        // if bytes.len() != G2_BYTES * 2 {
+        //     return Err(AmclError::InvalidG1Size);
+        // }
+        let point = deserialize_g1(bytes)?;
+        Ok(Self { point })
+    }
+
+    /// Export (serialize) the AggregatePublicKey to bytes.
+    pub fn as_bytes(&self) -> [u8; G1_BYTES] {
+        compress_g1(&self.point)
     }
 }
 
